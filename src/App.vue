@@ -1,15 +1,28 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <site-header />
+  <!--<welcome />-->
+  <coin-list />
+  <result-page />
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import SiteHeader from './components/SiteHeader.vue'
+// import Welcome from './components/Welcome.vue'
+import CoinList from './components/CoinList.vue'
+import ResultPage from './components/ResultPage.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    SiteHeader,
+    // Welcome,
+    CoinList,
+    ResultPage
+  },
+  data () {
+    return {
+
+    }
   }
 }
 </script>
@@ -21,6 +34,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
