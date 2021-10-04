@@ -4,7 +4,7 @@
         <va-card-content>
             <va-input class="mb-4 coin-search" v-model="searchValue" placeholder="Search for any coin" @input="onSearchChanged" />
             <div class="coin-list">
-                <coin v-for="coin in shownCoins" :key="coin.short" :name="coin.name" :short="coin.short" />
+                <coin v-for="coin in shownCoins" :key="coin.id" :name="coin.name" :short="coin.short" :id="coin.id" />
             </div>
         </va-card-content>
     </va-card>
@@ -17,30 +17,35 @@ export default {
     components: {
         Coin
     },
-    props: {
-        coins: {
-            type: Array,
-            default () {
-                return [
-                    { name: 'Ergo', short: 'ERG' },
-                    { name: 'Raven', short: 'RVN' },
-                    { name: 'Conflux', short: 'CFX' },
-                    { name: 'Bitcoin', short: 'BTC' },
-                    { name: 'Ethereum', short: 'ETH' },
-                    { name: 'Ethereum Classic', short: 'ETC' },
-                ]
-            }
-        }
-    },
     data () {
         return {
             searchValue: '',
             shownCoins: this.coins
         }
     },
+    computed: {
+        coins () {
+            return this.$store.state.coins
+        }
+    },
+    watch: {
+        coins () {
+            if (this.searchValue) {
+                this.filter()
+            } else {
+                this.shownCoins = this.coins
+            }
+        }
+    },
     methods: {
         onSearchChanged () {
-            this.shownCoins = this.coins.filter(coin => coin.name.includes(this.searchValue) || coin.short.includes(this.searchValue))
+            this.filter()
+        },
+        filter () {
+            this.shownCoins = this.coins.filter(coin => {
+                this.searchValue = this.searchValue.toLowerCase();
+                return coin.name.toLowerCase().includes(this.searchValue) || coin.short.toLowerCase().includes(this.searchValue)
+            })
         }
     }
 }

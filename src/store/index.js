@@ -2,7 +2,10 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
-    searchedCoin: ''
+    searchedCoin: '',
+    coins: [],
+    gpus: [],
+    settings: []
   },
   mutations: {
   },

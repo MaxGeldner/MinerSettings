@@ -12,7 +12,7 @@
                 </va-button-group>
             </va-card-content>
         </va-card>
-        <add-modal :state="showAddForm" :coin="short" @settingAdded="showAddForm = false" />
+        <add-modal :state="showAddForm" :coin="{ name, short, id }" @settingAdded="showAddForm = false" />
     </div>
 </template>
 
@@ -35,6 +35,10 @@ export default {
         image: {
             type: String,
             default: 'coins/ergo.png'
+        },
+        id: {
+            type: Number,
+            default: -1
         }
     },
     data () {
