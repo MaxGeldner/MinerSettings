@@ -1,8 +1,8 @@
 <template>
-  <site-header />
+  <site-header class="header" />
   <!--<welcome />-->
-  <coin-list />
-  <result-page />
+  <coin-list class="coin-list" />
+  <result-page class="result-page" />
 </template>
 
 <script>
@@ -38,12 +38,28 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  display: flex;
+  flex-flow: column;
+  height: 100vh;
+  width: 100%;
+
+  .header {
+    flex: 0 1 auto;
+  }
+
+  .coin-list {
+    flex: 1 1 auto;
+  }
+
+  .result-page {
+    flex: 1 1 auto;
+  }
 }
 </style>

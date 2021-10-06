@@ -1,10 +1,14 @@
 <template>
-    <va-card class="card" color="#682beb" :bordered="false" square outlined>
+    <va-card class="card" color="#4006bfdd" :bordered="false" square>
         <va-card-title>Select a coin</va-card-title>
         <va-card-content>
-            <va-input class="mb-4 coin-search" v-model="searchValue" placeholder="Search for any coin" @input="onSearchChanged" />
+            <va-input class="mb-4 coin-search" v-model="searchValue" placeholder="Search for any coin" @input="onSearchChanged">
+                <template #prependInner>
+                    <va-icon name="search"/>
+                </template>
+            </va-input>
             <div class="coin-list">
-                <coin v-for="coin in shownCoins" :key="coin.id" :name="coin.name" :short="coin.short" :id="coin.id" />
+                <coin v-for="coin in shownCoins" :key="coin.id" :name="coin.name" :short="coin.short" :id="coin.id" :image="coin.image" />
             </div>
         </va-card-content>
     </va-card>
@@ -54,9 +58,12 @@ export default {
 <style lang="scss" scoped>
 .card {
     color: white;
+    box-shadow: none !important;
+    border-bottom: 1px solid #eeeeee22;
 
     .coin-search {
-        width: 10vw;
+        width: 40vw;
+        margin: 0 auto;
     }
 
     .coin-list {

@@ -5,7 +5,7 @@
       overlay-opacity="0.2"
     >
         <template #header>
-            <h2>Add setting for {{ coin.name }} ({{ coin.short }})</h2>
+            <h2>Add setting<span v-if="coin !== null"> for {{ coin.name }} ({{ coin.short }})</span></h2>
         </template>
         <slot>
             <va-form class="add-form">
@@ -19,6 +19,8 @@
                         />
                         <br>
                         <va-select class="results-gpu-select" v-model="gpu" label="GPU" :options="gpuList" text-by="name" track-by="id" />
+                        <br>
+                        <va-select v-if="!coin" class="results-gpu-select" v-model="selectedCoin" label="Coin" :options="coinList" text-by="name" track-by="id" />
                     </va-card-content>
                 </va-card>
                 <va-card class="form-group">
@@ -79,24 +81,19 @@
 <script>
 export default {
     props: {
-        state: {
-            type: Boolean,
-            default: false
-        },
         coin: {
             type: Object,
             default () {
-                return {
-                    name: 'Coin',
-                    id: -1
-                }
+                return null
             }
         },
     },
+    emits: ['settingAdded'],
     data () {
         return {
-            show: this.state,
+            show: true,
             title: '',
+            selectedCoin: this.coin ? this.coin : null,
             gpu: '',
             coreClock: 0,
             memClock: 0,
@@ -110,6 +107,9 @@ export default {
     computed: {
         gpuList () {
             return this.$store.state.gpus
+        },
+        coinList () {
+            return this.$store.state.coins
         }
     },
     watch: {
@@ -133,7 +133,7 @@ export default {
                 },
                 body: JSON.stringify(
                     {
-                        coin: this.coin.id,
+                        coin: this.selectedCoin.id,
                         title: this.title,
                         gpu: this.gpu.id,
                         coreClock: this.coreClock,
@@ -146,6 +146,8 @@ export default {
                 )
             });
             this.show = false
+            this.title = ''
+            this.selectedCoin = null
             this.gpu = 0
             this.coreClock = 0
             this.memClock = 0
@@ -153,6 +155,10 @@ export default {
             this.voltage = 0
             this.hashrate = 0
             this.wattage = 0
+
+            const response = await fetch('http://localhost:3000/settings')
+            this.$store.state.settings = response.json()
+
             this.$emit('settingAdded')
         }
     }

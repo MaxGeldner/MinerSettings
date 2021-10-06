@@ -1,23 +1,30 @@
 <template>
     <va-card class="result-card" color="#682beb" :bordered="true" square outlined>
         <va-card-title class="result-title">
-            <va-button-group class="vote-buttons vertical">
-                <va-button class="vote-down" icon="expand_more" @click="vote(-1)" />
-                <va-button class="vote-up" icon="expand_less" @click="vote(1)" />
-            </va-button-group>
-            <va-chip :color="getRatingColor(rating)">{{ rating }}</va-chip>
+            <div class="vote-buttons">
+                <va-button class="vote-up" :disabled="modifiedResult.votedUpByUser" icon="expand_less" @click="vote(1)" />
+                <va-button class="vote-down" :disabled="modifiedResult.votedDownByUser" icon="expand_more" @click="vote(-1)" />
+            </div>
+            &nbsp;
+            <va-chip :color="getRatingColor(getRating(modifiedResult.upvotes, modifiedResult.downvotes))">
+                {{ getRating(modifiedResult.upvotes, modifiedResult.downvotes).toFixed(0) }}
+            </va-chip>
             <va-divider vertical />
-            {{ gpu }}: {{ title }}
+            {{ result.gpuName }}: {{ result.title }}
         </va-card-title>
         <va-card-content>
             <div class="result-description">
-                {{ description }}
+                {{ result.description }}
+                Core Clock: {{ result.coreClock }}<br>
+                Memory Clock: {{ result.memClock }}<br>
+                Power Target: {{ result.powerTarget }}%
             </div>
             <div class="result-chips">
-                <va-chip class="result-chip" color="primary">{{ efficiency }} Mh/Watt</va-chip>
-                <va-chip class="result-chip" color="primary">{{ hashrate / (1000 * 1000)}} Mh/s</va-chip>
-                <va-chip class="result-chip" color="primary">{{ wattage }} W</va-chip>
+                <va-chip class="result-chip" color="primary">{{ (result.efficiency / (1000 * 1000)).toFixed(2) }} Mh/Watt</va-chip>
+                <va-chip class="result-chip" color="primary">{{ (result.hashrate / (1000 * 1000)).toFixed(2)}} Mh/s</va-chip>
+                <va-chip class="result-chip" color="primary">{{ result.wattage }} W</va-chip>
             </div>
+            <div class="result-created-date"><small>{{ createdDate }}</small></div>
         </va-card-content>
     </va-card>
 </template>
@@ -25,43 +32,25 @@
 <script>
 export default {
     props: {
-        id: {
-            type: Number,
+        result: {
+            type: Object,
             default: -1
-        },
-        title: {
-            type: String,
-            default: 'Result title'
-        },
-        gpu: {
-            type: String,
-            default: 'GPU'
-        },
-        description: {
-            type: String,
-            default: 'No description'
-        },
-        rating: {
-            type: Number,
-            default: 0
-        },
-        wattage: {
-            type: Number,
-            default: 0
-        },
-        hashrate: {
-            type: Number,
-            default: 0
-        },
+        }
     },
     data () {
         return {
-            efficiency: ((this.hashrate / (1000 * 1000)) / this.wattage).toFixed(2)
+            efficiency: ((this.result.hashrate / (1000 * 1000)) / this.result.wattage).toFixed(2),
+            modifiedResult: this.result
+        }
+    },
+    computed: {
+        createdDate () {
+            const date = new Date(this.result.created)
+            return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()} ${date.getHours()}:${(date.getMinutes() < 10 ? '0' : '')}${date.getMinutes()}`
         }
     },
     methods: {
         async vote (value) {
-            console.log(value)
             await fetch('http://localhost:3000/rate', {
                 method: 'POST',
                 headers: {
@@ -70,12 +59,20 @@ export default {
                 },
                 body: JSON.stringify(
                     {
-                        id: this.id,
+                        id: this.result.id,
                         upvote: value > 0,
                         downvote: value < 0
                     }
                 )
             });
+
+            // get setting with new information about vote and score
+            const response = await fetch(`http://localhost:3000/settings?id=${this.result.id}`)
+            const responseJSON = await response.json()
+            this.modifiedResult = responseJSON[0]
+        },
+        getRating (upvotes, downvotes) {
+            return upvotes / ((upvotes + downvotes) || 1) * 100
         },
         getRatingColor (rating) {
             if (rating >= 75) {
@@ -93,33 +90,57 @@ export default {
 <style lang="scss" scoped>
 .result-card {
     text-align: left;
-    width: 100%;
+    min-width: 24%;
+    max-width: 24%;
+    border: 1px solid #eeeeee22;
+    border-radius: 5px;
 
     .result-title {
         color: white;
         font-size: large;
 
         .vote-buttons {
-            transform: rotate(0.75turn) scale(0.45, 1);
-            margin: -20px -20px -20px -40px;
+            transform: scale(0.7);
+            height: 50px;
+            margin-top: -12px;
+
+            button {
+                color: white;
+                cursor: pointer;
+                display: block;
+                padding-left: 16%;
+                border-radius: 30px;
+                font-size: 5pt !important;
+            }
 
             .vote-up {
-                transform: rotate(-0.75turn) scale(1, 1.3) translate(8%, 0px);
+                border-bottom-right-radius: 0px;
+                border-bottom-left-radius: 0px;
             }
 
             .vote-down {
-                transform: rotate(-0.75turn) scale(1, 1.3) translate(-8%, 0px);
+                border-top-right-radius: 0px;
+                border-top-left-radius: 0px;
             }
         }
     }
 
     .result-description {
         margin-bottom: 10px;
-        color: #ffffffee
+        color: #ffffffee;
+        line-height: 17pt;
+        font-size: 13pt;
     }
 
     .result-chip {
         margin: 5px;
+    }
+
+    .result-created-date {
+        color: #ffffffaa;
+        position: absolute;
+        bottom: 1%;
+        right: 1%;
     }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-    <va-card class="card" color="#682beb" :bordered="false" square outlined>
-        <va-card-title>Results {{ searchedCoin ? `for ${searchedCoin}` : '' }} </va-card-title>
+    <va-card class="card" color="#4006bfdd" :bordered="false" square>
+        <va-card-title>Results {{ searchedCoin ? `for ${searchedCoin.name}` : '' }} </va-card-title>
         <va-card-content>
             <!--<va-card class="result-filter" square outlined>
                 <va-card-title>Filter Results</va-card-title>
@@ -18,36 +18,44 @@
             </va-card>-->
             <div class="top-filter mb-4">
                 <va-button-group class="results-sort">
-                    <va-button :rounded="false" @click="sortBy('rating')" disabled>Sort By: </va-button>
+                    <va-button :rounded="false" disabled>Sort By: </va-button>
                     <va-button :rounded="false" @click="sortBy('rating')">Score</va-button>
-                    <va-button :rounded="false" @click="sortBy('eff')">Efficiency</va-button>
+                    <va-button :rounded="false" @click="sortBy('popularity')">Popularity</va-button>
+                    <va-button :rounded="false" @click="sortBy('efficiency')">Efficiency</va-button>
                     <va-button :rounded="false" @click="sortBy('hashrate')">Hashrate</va-button>
                     <va-button :rounded="false" @click="sortBy('wattage')">Wattage</va-button>
                 </va-button-group>
                 <va-select class="results-gpu-select" v-model="selectedGPU" label="GPU" :options="gpuList" text-by="name" track-by="id" clearable
-                    @update:model-value="onGPUChange"
+                    placeholder="Select a GPU from the list below..." searchable @update:model-value="onGPUChange"
                 />
             </div>
             <div v-if="shownResults.length > 0" class="results">
                 <result-item v-for="result in shownResults" :key="result.id"
-                    :title="result.title" :rating="(result.upvotes || 1) / (result.downvotes || 1) * 100" :efficiency="result.efficiency || 0" :hashrate="result.hashrate || 0" :wattage="result.wattage || 0"
-                    :gpu="gpuList.length && gpuList.filter(gpu => result.gpu === gpu.id)[0].name" :id="result.id"
+                    :result="result" :gpu="gpuList.length && (gpuList.filter(gpu => result.gpu === gpu.id)[0] || {}).name" :id="result.id"
                 />
             </div>
-            <div v-else>
+            <div v-else-if="shownResults.length === 0 && searchedCoin" class="no-results">
                 No results for this coin! Be the first one to add one!<br><br>
-                <va-button rounded @click="sortBy('wattage')">+ Add setting for "{{ searchedCoin }}"</va-button>
+                <va-button class="add-button" rounded @click="showAddForm = true">+ Add setting for "{{ searchedCoin.name }}"</va-button>
+            </div>
+            <div v-else-if="shownResults.length === 0 && !searchedCoin" class="no-results">
+                Select a coin first, then a GPU. Results will be shown here.<br>
+                You can also add a setting for a coin and a GPU by clicking the button below!<br><br>
+                <va-button class="add-button" rounded @click="showAddForm = true">+ Add setting</va-button>
             </div>
         </va-card-content>
+        <add-modal v-if="showAddForm" :coin="searchedCoin ? { name: searchedCoin.name, short: searchedCoin.short, id: searchedCoin.id } : null" @settingAdded="showAddForm = false" />
     </va-card>
 </template>
 
 <script>
 import ResultItem from './ResultItem.vue'
+import AddModal from './AddModal.vue'
 
 export default {
     components: {
-        ResultItem
+        ResultItem,
+        AddModal
     },
     data () {
         return {
@@ -58,8 +66,9 @@ export default {
             shownResults: this.settings || [],
             sortDir: 0,
             selectedGPU: '',
-            selectedCoin: '',
-            results: []
+            results: [],
+            sortedProp: '',
+            showAddForm: false
         }
     },
     computed: {
@@ -67,22 +76,19 @@ export default {
             return this.$store.state.searchedCoin
         },
         gpuList () {
-            return this.$store.state.gpus || [{ name: 'Coin', id: 1}]
+            return this.$store.state.gpus || []
         },
         settings () {
             return this.$store.state.settings || []
         }
     },
     watch: {
-        searchedCoin (newValue) {
-            this.selectedCoin = newValue
+        searchedCoin () {
             this.filter()
             this.sortBy('rating')
         },
     },
     async created () {
-        const response = await fetch('http://localhost:3000/settings')
-        this.$store.state.settings = await response.json()
         this.shownResults = this.settings
         this.sortBy('rating')
     },
@@ -96,8 +102,8 @@ export default {
         },
         async filter () {
             let filteredResult = this.settings
-            if (this.selectedCoin) {
-                filteredResult = filteredResult.filter(setting => setting.coin === this.selectedCoin)
+            if (this.searchedCoin) {
+                filteredResult = filteredResult.filter(setting => setting.coin === this.searchedCoin.id)
             }
             if (this.selectedGPU) {
                 filteredResult = filteredResult.filter(setting => setting.gpu === this.selectedGPU.id)
@@ -105,17 +111,34 @@ export default {
             this.shownResults = filteredResult
         },
         sortBy (prop) {
-            if (this.shownResults || (Array.isArray(this.shownResults) && !this.shownResults.length)) {
+            if (!this.shownResults || (Array.isArray(this.shownResults) && !this.shownResults.length)) {
                 return
             }
             const results = [ ...this.shownResults ]
-            if (this.sortDir === -1 || this.sortDir === 0) {
-                this.shownResults = results.sort((a, b) => (a[prop] > b[prop]) ? -1 : ((b[prop] > a[prop]) ? 1 : 0))
+
+            let sortFn = (a, b) => (a[prop] > b[prop]) ? -1 : ((b[prop] > a[prop]) ? 1 : 0)
+            if (prop === 'rating') {
+                sortFn = (a, b) => {
+                    const scoreA = a.upvotes / ((a.upvotes + a.downvotes) || 1)
+                    const scoreB = b.upvotes / ((b.upvotes + b.downvotes) || 1)
+                    return (scoreA > scoreB) ? -1 : ((scoreB > scoreA) ? 1 : 0)
+                }
+            } else if (prop === 'popularity') {
+                sortFn = (a, b) => {
+                    const popA = a.upvotes + a.downvotes
+                    const popB = b.upvotes + b.downvotes
+                    return (popA > popB) ? -1 : ((popB > popA) ? 1 : 0)
+                }
+            }
+            if (this.sortedProp !== prop || this.sortDir === -1 || this.sortDir === 0) {
+                this.shownResults = results.sort(sortFn)
                 this.sortDir = 1
             } else if (this.sortDir === 1) {
-                this.shownResults = results.sort((a, b) => (a[prop] > b[prop]) ? -1 : ((b[prop] > a[prop]) ? 1 : 0)).reverse()
+                this.shownResults = results.sort(sortFn).reverse()
                 this.sortDir = -1
             }
+
+            this.sortedProp = prop
         }
     }
 }
@@ -128,6 +151,7 @@ export default {
     float: left;
     max-width: 100%;
     min-width: 100%;
+    box-shadow: none !important;
 
     .top-filter {
         display: flex;
@@ -139,7 +163,7 @@ export default {
         }
 
         .results-gpu-select {
-            width: 15vw !important;
+            width: 17vw !important;
             flex-shrink: 0;
             flex-grow: 0;
         }
@@ -154,8 +178,22 @@ export default {
         max-width: 100%;
         min-width: 100%;
         display: flex;
+        flex-flow: wrap;
         gap: 10px;
         align-items: stretch;
     }
+
+    .no-results {
+        text-align: center;
+        margin-top: 3%;
+        line-height: 22px;
+    }
+}
+
+.pagination {
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #eeeeee;
 }
 </style>
