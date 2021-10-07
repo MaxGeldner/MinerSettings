@@ -90,8 +90,8 @@ export default {
 <style lang="scss" scoped>
 .result-card {
     text-align: left;
-    min-width: 24%;
-    max-width: 24%;
+    min-width: 24.5%;
+    max-width: 24.5%;
     border: 1px solid #eeeeee22;
     border-radius: 5px;
 

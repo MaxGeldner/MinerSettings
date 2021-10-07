@@ -1,18 +1,18 @@
 <template>
     <div>
-        <va-card class="card-content" :bordered="true" square outlined>
+        <va-card class="card-content" :bordered="true" :color="(selected || typeof searchedCoin === 'undefined') ? '#ffffff' : '#dddddd'" square outlined>
             <va-card-title class="coin-header">{{ name }} ({{ short }})</va-card-title>
             <va-card-content>
                 <div class="coin-image">
                     <va-image contain :src="image" />
                 </div>
-                <va-button-group class="coin-buttons">
-                    <va-button icon="add" @click="onSettingAddClick" />
-                    <va-button icon="visibility" @click="onSettingViewClick" />
-                </va-button-group>
+                <div class="coin-buttons">
+                    <va-button icon="add" @click="onSettingAddClick">&nbsp;Add Setting</va-button><br>
+                    <va-button icon="visibility" @click="onSettingViewClick">&nbsp;View Settings</va-button>
+                </div>
             </va-card-content>
         </va-card>
-        <add-modal v-if="showAddForm" :coin="{ name, short, id }" @settingAdded="showAddForm = false" />
+        <add-modal v-if="showAddForm" :coin="{ name, short, id }" @closed="showAddForm = false" @settingAdded="showAddForm = false" />
     </div>
 </template>
 
@@ -50,10 +50,16 @@ export default {
         gpuList () {
             return this.$store.state.gpus || []
         },
+        searchedCoin () {
+            return this.$store.state.searchedCoin.id
+        },
+        selected () {
+            return this.searchedCoin === this.id
+        }
     },
     methods: {
         async onSettingViewClick () {
-            if (this.$store.state.searchedCoin.id === this.id) {
+            if (this.selected) {
                 return
             }
             const response = await fetch(`http://${process.env.VUE_APP_API_URL}/settings?coin=${this.id}`)
@@ -75,8 +81,8 @@ export default {
 <style lang="scss" scoped>
 .card-content {
     color: black;
-    width: 190px;
-    height: 150px;
+    width: 210px;
+    height: 190px;
 
     .coin-header {
         color: black;
@@ -94,6 +100,11 @@ export default {
 
     .coin-buttons {
         margin: auto;
+
+        button {
+            width: 100%;
+            margin-bottom: 7px
+        }
     }
 }
 </style>

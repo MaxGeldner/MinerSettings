@@ -1,6 +1,6 @@
 <template>
     <va-card class="card" color="#4006bfdd" :bordered="false" square>
-        <va-card-title>Results {{ searchedCoin ? `for ${searchedCoin.name}` : '' }} </va-card-title>
+        <va-card-title class="card-title">Results {{ searchedCoin ? `for "${searchedCoin.name}"` : '' }} </va-card-title>
         <va-card-content>
             <!--<va-card class="result-filter" square outlined>
                 <va-card-title>Filter Results</va-card-title>
@@ -44,7 +44,9 @@
                 <va-button class="add-button" rounded @click="showAddForm = true">+ Add setting</va-button>
             </div>
         </va-card-content>
-        <add-modal v-if="showAddForm" :coin="searchedCoin ? { name: searchedCoin.name, short: searchedCoin.short, id: searchedCoin.id } : null" @settingAdded="showAddForm = false" />
+        <add-modal v-if="showAddForm" :coin="searchedCoin ? { name: searchedCoin.name, short: searchedCoin.short, id: searchedCoin.id } : null"
+            @closed="showAddForm = false" @settingAdded="showAddForm = false"
+        />
     </va-card>
 </template>
 
@@ -152,6 +154,10 @@ export default {
     max-width: 100%;
     min-width: 100%;
     box-shadow: none !important;
+
+    .card-title {
+        font-size: medium;
+    }
 
     .top-filter {
         display: flex;

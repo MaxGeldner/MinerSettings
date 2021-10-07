@@ -1,13 +1,11 @@
 <template>
   <site-header class="header" />
-  <!--<welcome />-->
   <coin-list class="coin-list" />
   <result-page class="result-page" />
 </template>
 
 <script>
 import SiteHeader from './components/SiteHeader.vue'
-// import Welcome from './components/Welcome.vue'
 import CoinList from './components/CoinList.vue'
 import ResultPage from './components/ResultPage.vue'
 
@@ -51,7 +49,7 @@ export default {
   width: 100%;
 
   .header {
-    flex: 0 1 auto;
+    flex: 0 0 4%;
   }
 
   .coin-list {
