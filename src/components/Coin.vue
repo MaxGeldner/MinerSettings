@@ -56,7 +56,7 @@ export default {
             if (this.$store.state.searchedCoin.id === this.id) {
                 return
             }
-            const response = await fetch(`http://localhost:3000/settings?coin=${this.id}`)
+            const response = await fetch(`http://${process.env.VUE_APP_API_URL}/settings?coin=${this.id}`)
             const settings = await response.json()
             settings.forEach(setting => {
                 setting.efficiency = setting.hashrate / setting.wattage || 1

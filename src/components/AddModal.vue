@@ -125,7 +125,7 @@ export default {
             } else if (this.hashrateUnit === 'Mh/s') {
                 hashrate *= 1000000
             }
-            await fetch('http://localhost:3000/settings', {
+            await fetch(`http://${process.env.VUE_APP_API_URL}/settings`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -156,7 +156,7 @@ export default {
             this.hashrate = 0
             this.wattage = 0
 
-            const response = await fetch('http://localhost:3000/settings')
+            const response = await fetch(`http://${process.env.VUE_APP_API_URL}/settings`)
             this.$store.state.settings = response.json()
 
             this.$emit('settingAdded')

@@ -25,12 +25,12 @@ export default {
   },
   methods: {
     async getAndSaveCoins () {
-      const response = await fetch('http://localhost:3000/coins')
+      const response = await fetch(`http://${process.env.VUE_APP_API_URL}/coins`)
       const coins = await response.json()
       this.$store.state.coins = coins
     },
     async getAndSaveGPUs () {
-      const response = await fetch('http://localhost:3000/gpus')
+      const response = await fetch(`http://${process.env.VUE_APP_API_URL}/gpus`)
       const coins = await response.json()
       this.$store.state.gpus = coins
     }

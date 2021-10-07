@@ -51,7 +51,7 @@ export default {
     },
     methods: {
         async vote (value) {
-            await fetch('http://localhost:3000/rate', {
+            await fetch(`http://${process.env.VUE_APP_API_URL}/rate`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -67,7 +67,7 @@ export default {
             });
 
             // get setting with new information about vote and score
-            const response = await fetch(`http://localhost:3000/settings?id=${this.result.id}`)
+            const response = await fetch(`http://${process.env.VUE_APP_API_URL}/settings?id=${this.result.id}`)
             const responseJSON = await response.json()
             this.modifiedResult = responseJSON[0]
         },
