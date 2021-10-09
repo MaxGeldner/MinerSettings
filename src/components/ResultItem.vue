@@ -17,7 +17,8 @@
                 {{ result.description }}
                 Core Clock: {{ result.coreClock }}<br>
                 Memory Clock: {{ result.memClock }}<br>
-                Power Target: {{ result.powerTarget }}%
+                Power Target: {{ result.powerTarget }} %<br>
+                Voltage: {{ result.voltage }} V<br>
             </div>
             <div class="result-chips">
                 <va-chip class="result-chip" color="primary">{{ (result.efficiency / (1000 * 1000)).toFixed(2) }} Mh/Watt</va-chip>
@@ -25,6 +26,7 @@
                 <va-chip class="result-chip" color="primary">{{ result.wattage }} W</va-chip>
             </div>
             <div class="result-created-date"><small>{{ createdDate }}</small></div>
+            <!--<div class="result-report"><small>Report</small></div>-->
         </va-card-content>
     </va-card>
 </template>
@@ -141,6 +143,17 @@ export default {
         position: absolute;
         bottom: 1%;
         right: 1%;
+    }
+
+    .result-report {
+        color: #ffffffaa;
+        position: absolute;
+        bottom: 1%;
+        left: 1%;
+
+        &:hover {
+            cursor: pointer;
+        }
     }
 }
 </style>

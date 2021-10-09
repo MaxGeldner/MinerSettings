@@ -19,11 +19,11 @@
             <div class="top-filter mb-4">
                 <va-button-group class="results-sort">
                     <va-button :rounded="false" disabled>Sort By: </va-button>
-                    <va-button :rounded="false" @click="sortBy('rating')">Score</va-button>
-                    <va-button :rounded="false" @click="sortBy('popularity')">Popularity</va-button>
-                    <va-button :rounded="false" @click="sortBy('efficiency')">Efficiency</va-button>
-                    <va-button :rounded="false" @click="sortBy('hashrate')">Hashrate</va-button>
-                    <va-button :rounded="false" @click="sortBy('wattage')">Wattage</va-button>
+                    <va-button :class="`${sortedProp === 'rating' ? 'active' : ''}`" :rounded="false" @click="sortBy('rating')">Score</va-button>
+                    <va-button :class="`${sortedProp === 'popularity' ? 'active' : ''}`" :rounded="false" @click="sortBy('popularity')">Popularity</va-button>
+                    <va-button :class="`${sortedProp === 'efficiency' ? 'active' : ''}`" :rounded="false" @click="sortBy('efficiency')">Efficiency</va-button>
+                    <va-button :class="`${sortedProp === 'hashrate' ? 'active' : ''}`" :rounded="false" @click="sortBy('hashrate')">Hashrate</va-button>
+                    <va-button :class="`${sortedProp === 'wattage' ? 'active' : ''}`" :rounded="false" @click="sortBy('wattage')">Wattage</va-button>
                 </va-button-group>
                 <va-select class="results-gpu-select" v-model="selectedGPU" label="GPU" :options="gpuList" text-by="name" track-by="id" clearable
                     placeholder="Select a GPU from the list below..." searchable @update:model-value="onGPUChange"
@@ -166,6 +166,10 @@ export default {
         .results-sort {
             flex-shrink: 0;
             flex-grow: 0;
+
+            .active {
+                background: rgb(46, 106, 227) !important;
+            }
         }
 
         .results-gpu-select {

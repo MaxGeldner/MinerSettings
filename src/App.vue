@@ -1,5 +1,5 @@
 <template>
-  <site-header class="header" />
+  <site-header class="site-header" />
   <coin-list class="coin-list" />
   <result-page class="result-page" />
 </template>
@@ -48,7 +48,7 @@ export default {
   height: 100vh;
   width: 100%;
 
-  .header {
+  .site-header {
     flex: 0 0 4%;
   }
 

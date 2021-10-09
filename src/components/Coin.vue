@@ -1,6 +1,6 @@
 <template>
     <div>
-        <va-card class="card-content" :bordered="true" :color="(selected || typeof searchedCoin === 'undefined') ? '#ffffff' : '#dddddd'" square outlined>
+        <va-card :class="`card-content ${selected ? 'active' : ''}`" :bordered="true" :color="(selected || typeof searchedCoin === 'undefined') ? '#ffffff' : '#dddddd'" square outlined>
             <va-card-title class="coin-header">{{ name }} ({{ short }})</va-card-title>
             <va-card-content>
                 <div class="coin-image">
@@ -12,7 +12,7 @@
                 </div>
             </va-card-content>
         </va-card>
-        <add-modal v-if="showAddForm" :coin="{ name, short, id }" @closed="showAddForm = false" @settingAdded="showAddForm = false" />
+        <add-modal v-if="showAddForm" :coin="{ name, short, id }" @closed="showAddForm = false" @settingAdded="onSettingAdded" />
     </div>
 </template>
 
@@ -73,12 +73,20 @@ export default {
         },
         onSettingAddClick () {
             this.showAddForm = true
+        },
+        onSettingAdded () {
+            this.showAddForm = false
+            this.$store.state.searchedCoin = { id: this.id, short: this.short, name: this.name }
         }
     }
 }
 </script>
 
 <style lang="scss" scoped>
+.active {
+    outline: orange solid 2px;;
+}
+
 .card-content {
     color: black;
     width: 210px;

@@ -33,24 +33,28 @@
                     <va-card-content>
                         <va-input
                             label="Core Clock (MHz)"
+                            type="number"
                             v-model="coreClock"
                             :rules="[value => (value !== null && value.length > 0) || 'Field is required']"
                         />
                         <br>
                         <va-input
                             label="Memory Clock (MHz)"
+                            type="number"
                             v-model="memClock"
                             :rules="[value => (value !== null && value.length > 0) || 'Field is required']"
                         />
                         <br>
                         <va-input
                             label="Power Target (%)"
+                            type="number"
                             v-model="powerTarget"
                             :rules="[value => (value !== null && value.length > 0) || 'Field is required', value => (value >= 0 && value <= 100) || 'Value must be between 0 and 100']"
                         />
                         <br>
                         <va-input
                             label="Voltage (V)"
+                            type="number"
                             v-model="voltage"
                             :rules="[value => (value !== null) || 'Field is required']"
                         />
@@ -62,6 +66,7 @@
                         <div class="hashrate-field">
                             <va-input
                                 label="Hashrate"
+                                type="number"
                                 v-model="hashrate"
                                 :rules="[value => (value !== null && value.length > 0) || 'Field is required']"
                             />
@@ -70,6 +75,7 @@
                         <br>
                         <va-input
                             label="Wattage (W)"
+                            type="number"
                             v-model="wattage"
                             :rules="[value => (value !== null && value.length > 0 && value > 0) || 'Field is required']"
                         />
@@ -81,7 +87,7 @@
             <va-card class="preview">
                 <div class="preview-item"><div>Title:</div><div>{{ title }}</div></div>
                 <div class="preview-item"><div>GPU:</div><div>{{ gpu.name }}</div></div>
-                <div class="preview-item"><div>Coin:</div><div>{{ coin.name }}</div></div>
+                <div class="preview-item"><div>Coin:</div><div>{{ selectedCoin.name }}</div></div>
             </va-card>
             <va-card class="preview">
                 <div class="preview-item"><div>Core Clock:</div><div>{{ coreClock }} MHz</div></div>
@@ -93,12 +99,16 @@
                 <div class="preview-item"><div>Hashrate:</div><div>{{ hashrate }} {{ hashrateUnit }}</div></div>
                 <div class="preview-item"><div>Wattage:</div><div>{{ wattage }} W</div></div>
             </va-card>
+            <div v-if="isError" class="add-error">
+                Something went wrong while adding your setting!<br>Please check your inputs, try later again or
+                <br>consider <a href="mailto:support@minersettings.com">writing a bug report!</a>
+            </div>
         </slot>
         <template #footer>
             <va-button v-if="!settingCompleted" :disabled="!formValid" @click="settingCompleted = true">Preview Setting</va-button>
             <div v-else class="preview-buttons">
-                <va-button @click="settingCompleted = false" color="secondary">Back</va-button>&nbsp;
-                <va-button @click="onSubmitSetting">Submit Setting</va-button>
+                <va-button @click="onBack" color="secondary">Back</va-button>&nbsp;
+                <va-button @click="onSubmitSetting"><va-icon v-if="isLoading" name="loop" spin="counter-clockwise" />Submit Setting</va-button>
             </div>
         </template>
     </va-modal>
@@ -119,9 +129,11 @@ export default {
         return {
             show: true,
             hashrateUnitList: ['Kh/s', 'Mh/s'],
+            isLoading: false,
+            isError: false,
             title: '',
-            selectedCoin: this.coin ? this.coin : null,
-            gpu: '',
+            selectedCoin: this.coin ? this.coin : {},
+            gpu: {},
             coreClock: 0,
             memClock: 0,
             powerTarget: 0,
@@ -140,10 +152,10 @@ export default {
             return this.$store.state.coins
         },
         formValid () {
-            return this.title !== '' && this.title !== null && this.gpu !== null && this.coreClock !== null
+            return this.title !== '' && this.title !== null && typeof this.gpu.id !== 'undefined' && this.coreClock !== null
                 && this.memClock !== null && this.powerTarget >= 0 && this.powerTarget <= 100
                 && this.voltage !== null && this.voltage && this.hashrate !== null && this.hashrateUnitList.includes(this.hashrateUnit)
-                && this.wattage !== null && this.wattage > 0
+                && this.wattage !== null && this.wattage > 0 && typeof this.selectedCoin.id !== 'undefined'
         }
     },
     watch: {
@@ -159,7 +171,7 @@ export default {
             } else if (this.hashrateUnit === 'Mh/s') {
                 hashrate *= 1000000
             }
-            await fetch(`http://${process.env.VUE_APP_API_URL}/settings`, {
+            const addResponse = await fetch(`http://${process.env.VUE_APP_API_URL}/settings`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -179,10 +191,17 @@ export default {
                     }
                 )
             });
+            const success = await addResponse.json()
+
+            if (!success) {
+                this.isError = true
+                this.isLoading = false
+                return
+            }
+
             this.show = false
             this.title = ''
-            this.selectedCoin = null
-            this.gpu = 0
+            this.gpu = {}
             this.coreClock = 0
             this.memClock = 0
             this.powerTarget = 0
@@ -190,10 +209,18 @@ export default {
             this.hashrate = 0
             this.wattage = 0
 
-            const response = await fetch(`http://${process.env.VUE_APP_API_URL}/settings`)
-            this.$store.state.settings = response.json()
+            const settingsResponse = await fetch(`http://${process.env.VUE_APP_API_URL}/settings?coin=${this.selectedCoin.id}`)
+            this.$store.state.settings = await settingsResponse.json()
+            this.$store.state.searchedCoin = this.selectedCoin
+            this.selectedCoin = {}
+
+            this.isLoading = false
 
             this.$emit('settingAdded')
+        },
+        onBack() {
+            this.settingCompleted = false
+            this.isError = false
         },
         onModalClosed () {
             this.$emit('closed')
@@ -226,6 +253,13 @@ export default {
             width: 67%;
         }
     }
+}
+
+
+.add-error {
+    width: 100%;
+    text-align: center;
+    color: red;
 }
 
 .add-form {

@@ -10,6 +10,7 @@
             <div class="coin-list">
                 <coin v-for="coin in shownCoins" :key="coin.id" :name="coin.name" :short="coin.short" :id="coin.id" :image="coin.image" />
             </div>
+            <va-button v-if="coins.length > coinsInFirstRow" :icon="allCoinsShown ? 'expand_less' : 'expand_more'" flat class="show-more" @click="onShowAllCoins">Show {{ allCoinsShown ? 'less' : 'more' }}</va-button>
         </va-card-content>
     </va-card>
 </template>
@@ -24,7 +25,9 @@ export default {
     data () {
         return {
             searchValue: '',
-            shownCoins: this.coins
+            shownCoins: this.coins,
+            allCoinsShown: false,
+            coinsInFirstRow: 8
         }
     },
     computed: {
@@ -37,7 +40,7 @@ export default {
             if (this.searchValue) {
                 this.filter()
             } else {
-                this.shownCoins = this.coins
+                this.shownCoins = this.coins.slice(0, this.coinsInFirstRow)
             }
         }
     },
@@ -45,11 +48,17 @@ export default {
         onSearchChanged () {
             this.filter()
         },
+        onShowAllCoins() {
+            this.shownCoins = this.allCoinsShown ? this.coins.slice(0, this.coinsInFirstRow) : this.coins
+            this.allCoinsShown = !this.allCoinsShown
+            this.filter()
+        },
         filter () {
             this.shownCoins = this.coins.filter(coin => {
                 this.searchValue = this.searchValue.toLowerCase();
                 return coin.name.toLowerCase().includes(this.searchValue) || coin.short.toLowerCase().includes(this.searchValue)
             })
+            this.shownCoins = !this.allCoinsShown ? this.shownCoins.slice(0, this.coinsInFirstRow) : this.shownCoins
         }
     }
 }
@@ -75,6 +84,15 @@ export default {
         gap: 10px;
         flex-wrap: wrap;
         justify-content: center;
+    }
+
+    .show-more {
+        margin-top: 10px;
+        color: white !important;
+
+        &:hover {
+            background: none !important;
+        }
     }
 }
 </style>
