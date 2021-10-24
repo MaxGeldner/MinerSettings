@@ -62,7 +62,7 @@ export default {
             if (this.selected) {
                 return
             }
-            const response = await fetch(`http://${process.env.VUE_APP_API_URL}/settings?coin=${this.id}`)
+            const response = await fetch(`${process.env.VUE_APP_API_URL}/settings?coin=${this.id}`)
             const settings = await response.json()
             settings.forEach(setting => {
                 setting.efficiency = setting.hashrate / setting.wattage || 1

@@ -171,7 +171,7 @@ export default {
             } else if (this.hashrateUnit === 'Mh/s') {
                 hashrate *= 1000000
             }
-            const addResponse = await fetch(`http://${process.env.VUE_APP_API_URL}/settings`, {
+            const addResponse = await fetch(`${process.env.VUE_APP_API_URL}/settings`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -209,7 +209,7 @@ export default {
             this.hashrate = 0
             this.wattage = 0
 
-            const settingsResponse = await fetch(`http://${process.env.VUE_APP_API_URL}/settings?coin=${this.selectedCoin.id}`)
+            const settingsResponse = await fetch(`${process.env.VUE_APP_API_URL}/settings?coin=${this.selectedCoin.id}`)
             this.$store.state.settings = await settingsResponse.json()
             this.$store.state.searchedCoin = this.selectedCoin
             this.selectedCoin = {}
